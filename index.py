@@ -45,6 +45,8 @@
 {% block title %}home{% endblock %}
 {% block content %}
 NOTE: pronouns@mit is a service in early pre-alpha. do not expect anything at all. <br>
+<a href="README.txt">Click here for an overview of this service.</a><br>
+<br>
 Hello, {{ kerberos }}! <br>
 Here are your registered pronouns:<br>
 <form action="update.py" method="post">

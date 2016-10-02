@@ -40,6 +40,9 @@ and is not designed for use in any situations that cannot handle downtime.
 
 # Source Code Overview
 
+The source code can be found on GitHub at
+https://github.com/celskeggs/pronouns-mit.git.
+
 The source code is very messy, and is due for a clean-up. Similarly, the user
 interface is also very messy and low-quality, and is due for an upgrade.
 pronouns@mit welcomes any help in accomplishing these tasks.
@@ -57,13 +60,14 @@ is open to adjustments to make it more generic.
 
 No support is guaranteed for this project, but we welcome any suggestions. We
 also accept pull requests. Suggestions can be submitted either to our email
-list, pronouns@mit [dot] edu, or to our project on GitHub at
-https://github.com/celskeggs/pronouns-mit.git.
+list, pronouns@mit [dot] edu, or to our project on GitHub.
 
 # Deployment Notes
 
 Make sure that you remove the scripts.mit.edu permissions from the .git folder
-if you deploy this directly in an AFS locker.
+if you deploy this directly in an AFS locker. You will probably also want to
+allow system:anyuser read access to this folder, so that README.txt works
+properly.
 
 # License
 
