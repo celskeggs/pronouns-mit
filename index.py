@@ -17,7 +17,7 @@
 {% for user in block %}
 <tr><td>{{ user.kerberos }}</td>
     <td>{% if user.prefixes %}{{ user.prefixes[0] }}{% if user.prefixes[1:] %} (or: {{ ", ".join(user.prefixes[1:]) }}){% endif %}{% else %}[no honorific]{% endif %}</td>
-    <td>{% if user.names %}{{ user.names[0] }}{% for name in user.names[1:] %}<br>{{ name }}{% endfor %}{% else %}[no names; use kerberos]{% endif %}</td>
+    <td>{% if user.names %}{{ user.names[0] }}{% for name in user.names[1:] %}<br>{{ name }}{% endfor %}{% else %}[no name; use kerberos]{% endif %}</td>
     <td>{{ pronouns(user.preferred) }}</td>
     <td>{% if user.accepted %}{{ pronouns(user.accepted[0]) }}{% for accepted in user.accepted[1:] %}<br>{{ pronouns(accepted) }}{% endfor %}{% else %}[no alternatives]{% endif %}</td></tr>
 {% endfor %}
