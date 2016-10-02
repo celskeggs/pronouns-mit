@@ -146,4 +146,4 @@ else:
     env.globals["len"] = len
     print("Content-type: text/html\n")
     fetched = [parse_line(line) for line in fetched]
-    print(env.get_template(source).render(kerberos=kerberos, fetched=fetched, user={line.kerberos: line for line in fetched}.get(kerberos, empty_user_object)))
+    print(env.get_template(source).render(kerberos=kerberos, fetched=fetched, user={line.kerberos: line for line in fetched}.get(kerberos, empty_user_object)).encode("utf-8"))
