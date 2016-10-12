@@ -22,6 +22,7 @@ SQLBase = sqlalchemy.ext.declarative.declarative_base()
 class Pronouns(SQLBase):
     __tablename__ = "pronouns"
     kerberos = sqlalchemy.Column(sqlalchemy.String(63), nullable=False, primary_key=True)
+    substitute = sqlalchemy.Column(sqlalchemy.String(63), nullable=True)
     pronouns = sqlalchemy.Column(sqlalchemy.Text(), nullable=False)
     last_updated = sqlalchemy.Column(sqlalchemy.TIMESTAMP(), nullable=False)
     revision = sqlalchemy.Column(sqlalchemy.Integer(), nullable=False)
@@ -61,6 +62,8 @@ they_them = ["they", "them", "their", "theirs", "themself", True]
 def parse_line(line):
     obj = Object()
     obj.kerberos = line.kerberos
+    obj.substitute = line.substitute
+    obj.vkerb = line.substitute if line.substitute else line.kerberos
     pronouns = json.loads(line.pronouns)
     version = pronouns.get("version", 1)
     obj.names = pronouns.get("names", [])
@@ -74,6 +77,8 @@ def parse_line(line):
     return obj
 empty_user_object = Object()
 empty_user_object.kerberos = kerberos
+empty_user_object.substitute = None
+empty_user_object.vkerb = kerberos
 empty_user_object.names = []
 empty_user_object.preferred = None
 empty_user_object.accepted = []
@@ -98,6 +103,7 @@ def update_pronouns():
         names = [names]
     else:
         names = [name for name in names if name.strip()]
+    names = [name.strip() for name in ",".join(names).split(",") if name.strip()]
     pronouns = []
     i = 0
     while True:
@@ -118,7 +124,7 @@ def update_pronouns():
     pronoun_json = json.dumps({"version": 1, "names": names, "primary": pronouns[0], "accept": pronouns[1:], "prefixes": prefixes})
     if session.query(Pronouns).filter(Pronouns.kerberos == kerberos).count() == 0:
         # does not yet exist
-        new_row = Pronouns(kerberos=kerberos, pronouns=pronoun_json, revision=1)
+        new_row = Pronouns(kerberos=kerberos, substitute=None, pronouns=pronoun_json, revision=1)
         session.add(new_row)
     else:
         # already exists

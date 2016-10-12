@@ -4,8 +4,8 @@
 <label><input type="radio" name="{{ name }}" value="off" {% if not default %}checked{% endif %}>{{ label_off }}</label>
 <label><input type="radio" name="{{ name }}" value="on" {% if default %}checked{% endif %}>{{ label_on }}</label>
 {%- endmacro %}
-{% macro pronouns(prs) %}
-{% if prs == None %}[no pronouns]{% else %}{{ "/".join(prs[:-1]) }}  ({{ prs[0] }} {{ "are" if prs[-1] else "is" }}){% endif %}
+{% macro pronouns(prs, are_alternatives) %}
+{% if prs == None %}{% if are_alternatives %}[any pronouns]{% else %}[no pronouns: use name]{% endif %}{% else %}{{ "/".join(prs[:-1]) }}  ({{ prs[0] }} {{ "are" if prs[-1] else "is" }}){% endif %}
 {%- endmacro %}
 {% macro pronouns_edit(prs, i) %}
 {% if prs == None %}{% for j in range(5) %}<input type="text" name="pr{{ i }}_{{ j }}" value="{{ prs[j] }}">{% endfor %}{{ two_way_radio("pr%d_p" % i, "is", "are", false) }}
@@ -15,21 +15,22 @@
 <table border="1">
 <tr><td>kerberos</td><td>honorific</td><td>names</td><td>pronouns</td><td>acceptable alternatives</td></tr>
 {% for user in block %}
-<tr><td>{{ user.kerberos }}</td>
+<tr><td>{{ user.vkerb }}</td>
     <td>{% if user.prefixes %}{{ user.prefixes[0] }}{% if user.prefixes[1:] %} (or: {{ ", ".join(user.prefixes[1:]) }}){% endif %}{% else %}[no honorific]{% endif %}</td>
     <td>{% if user.names %}{{ user.names[0] }}{% for name in user.names[1:] %}<br>{{ name }}{% endfor %}{% else %}[no name; use kerberos]{% endif %}</td>
-    <td>{{ pronouns(user.preferred) }}</td>
-    <td>{% if user.accepted %}{{ pronouns(user.accepted[0]) }}{% for accepted in user.accepted[1:] %}<br>{{ pronouns(accepted) }}{% endfor %}{% else %}[no alternatives]{% endif %}</td></tr>
+    <td>{{ pronouns(user.preferred, user.accepted != []) }}</td>
+    <td>{% if user.accepted %}{{ pronouns(user.accepted[0], None) }}{% for accepted in user.accepted[1:] %}<br>{{ pronouns(accepted, None) }}{% endfor %}{% else %}[no alternatives]{% endif %}</td></tr>
 {% endfor %}
 </table>
 {%- endmacro %}
 {% macro user_edit(user) %}
 <table border="1">
-<tr><td>kerberos</td><td>honorific</td><td>names</td><td>pronouns</td><td>acceptable alternatives</td></tr>
+<tr><td>kerberos</td><td>substitute</td><td>honorific</td><td>names</td><td>pronouns</td><td>acceptable alternatives</td></tr>
 <tr id="uedit"><td>{{ user.kerberos }}</td>
+    <td><input type="text" name="substitute" value="{{ user.substitute or "" }}"></td>
     <td>{% for prefix in user.prefixes %}<input type="text" name="prefixes" value="{{ prefix }}"><br>{% endfor %}<input type="text" name="prefixes" value=""></td>
     <td>{% for name in user.names %}<input class="pname" type="text" name="names" value="{{ name }}"><br>{% endfor %}<input class="pname" type="text" name="names" value=""></td>
-    <td id="uedit_pronouns">{{ pronouns_edit(user.preferred, 0) }}<br>Common pronouns: <input type="button" value="she"><input type="button" value="he"><input type="button" value="they"></td>
+    <td id="uedit_pronouns">{{ pronouns_edit(user.preferred, 0) }}<br>Common pronouns: <input type="button" value="she"><input type="button" value="he"><input type="button" value="they"><input type="button" value="none"></td>
     <td><label><input type="checkbox" name="prthey" {% if user.accept_they %}checked{% endif %}>accept they/them (default)</label>{% if user.accept_nothey %}{% for i, accepted in enumerate(user.accept_nothey, 1) %}<br>{{ pronouns_edit(accepted, i) }}{% endfor %}{% endif %}<br>{{ pronouns_edit(["", "", "", "", "", False], len(user.accept_nothey) + 1) }}</td></tr>
 </table>
 {%- endmacro %}
@@ -47,7 +48,7 @@
 NOTE: pronouns@mit is a service in early alpha. do not expect anything at all. <br>
 <a href="README.txt">Click here for an overview of this service.</a><br>
 <br>
-Hello, {{ kerberos }}! <br>
+Hello, {{ user.vkerb }}! <br>
 Here are your registered pronouns:<br>
 <form action="update.py" method="post">
 {{ user_edit(user) }}
@@ -63,8 +64,8 @@ Here's a list of all pronouns:
         for (var i = 0; i < inputs.length; i++) {
             if (inputs[i].type == "text") {
                 inputs[i].value = arr[ti++];
-            } else if (inputs[i].type == "checkbox") {
-                inputs[i].checked = is_plural;
+            } else if (inputs[i].type == "radio" && inputs[i].value == (is_plural ? "on" : "off")) {
+                inputs[i].checked = true;
             }
         }
     }
@@ -77,6 +78,8 @@ Here's a list of all pronouns:
                     set_primary(["he", "him", "his", "his", "himself"], false);
                 } else if (inputs[this].value == "they") {
                     set_primary(["they", "them", "their", "theirs", "themself"], true);
+                } else if (inputs[this].value == "none") {
+                    set_primary(["", "", "", "", ""], false);
                 }
             }.bind(i);
         }
